@@ -1,14 +1,14 @@
 import { CommandFailedError } from "@tokenring-ai/agent/AgentError";
 import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
-import ImageGenerationService from "../../../ImageGenerationService.ts";
-import { ImageGenerationState } from "../../../state/ImageGenerationState.ts";
+import ImageService from "../../../ImageService.ts";
+import { ImageState } from "../../../state/ImageState.ts";
 
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 function execute({ agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
-  const initialModel = agent.getState(ImageGenerationState).initialConfig.model;
+  const initialModel = agent.getState(ImageState).initialConfig.model;
   if (!initialModel) throw new CommandFailedError("No initial image model configured");
-  agent.requireServiceByType(ImageGenerationService).setModel(initialModel, agent);
+  agent.requireServiceByType(ImageService).setModel(initialModel, agent);
   return Promise.resolve(`Image model reset to ${initialModel}`);
 }
 

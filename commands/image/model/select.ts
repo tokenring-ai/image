@@ -1,13 +1,13 @@
 import type { TreeLeaf } from "@tokenring-ai/agent/question";
 import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
 import { ImageGenerationModelRegistry } from "@tokenring-ai/ai-client/ModelRegistry";
-import ImageGenerationService from "../../../ImageGenerationService.ts";
+import ImageService from "../../../ImageService.ts";
 
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 async function execute({ agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
   const registry = agent.requireServiceByType(ImageGenerationModelRegistry);
-  const imageService = agent.requireServiceByType(ImageGenerationService);
+  const imageService = agent.requireServiceByType(ImageService);
   const modelsByProvider = await agent.busyWithActivity("Checking online status of models...", registry.getModelsByProvider());
   const tree: TreeLeaf[] = Object.entries(modelsByProvider)
     .sort(([a], [b]) => a.localeCompare(b))

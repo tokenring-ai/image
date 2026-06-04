@@ -3,6 +3,7 @@ import type { RPCSchema } from "@tokenring-ai/rpc/types";
 import { z } from "zod";
 
 export const ImageIndexEntrySchema = z.object({
+  kind: z.literal("image").default("image"),
   filename: z.string(),
   mimeType: z.string(),
   width: z.number(),
@@ -14,7 +15,7 @@ export type ImageIndexEntry = z.output<typeof ImageIndexEntrySchema>;
 
 export default {
   name: "Image Generation RPC",
-  path: "/rpc/image-generation",
+  path: "/rpc/image",
   methods: {
     getImages: {
       type: "query",

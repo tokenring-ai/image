@@ -1,71 +1,21 @@
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
-import FileSystemService from "@tokenring-ai/filesystem/FileSystemService";
+import MediaLibraryService from "@tokenring-ai/media-library/MediaLibraryService";
 import { z } from "zod";
-import ImageGenerationService from "../ImageGenerationService.ts";
 
 const name = "image_search";
 const displayName = "Image Generation/searchImages";
 
-function similarity(a: string, b: string): number {
-  const aLower = a.toLowerCase();
-  const bLower = b.toLowerCase();
-
-  if (aLower === bLower) return 1.0;
-  if (aLower.includes(bLower) || bLower.includes(aLower)) return 0.8;
-
-  const aWords = aLower.split(/\s+/);
-  const bWords = bLower.split(/\s+/);
-  const matches = aWords.filter(w => bWords.includes(w)).length;
-  return matches / Math.max(aWords.length, bWords.length);
-}
-
 async function execute({ query, limit = 10 }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const imageService = agent.requireServiceByType(ImageGenerationService);
-  const fileSystem = agent.requireServiceByType(FileSystemService);
+  const mediaLibrary = agent.requireServiceByType(MediaLibraryService);
+  const topResults = await mediaLibrary.search(query, { kind: "image", limit }, agent);
 
-  const targetDir = imageService.getOutputDirectory(agent);
-
-  const indexPath = `${targetDir}/image_index.json`;
-  const indexContent = await fileSystem.readTextFile(indexPath, agent);
-
-  if (!indexContent) {
-    throw new Error(`No index found at ${indexPath}. Run /image reindex first.`);
-  }
-
-  const lines = indexContent.trim().split("\n");
-  const results: Array<{
-    filename: string;
-    score: number;
-    mimeType: string;
-    width: number;
-    height: number;
-    keywords: string[];
-  }> = [];
-
-  for (const line of lines) {
-    try {
-      const entry = JSON.parse(line);
-      const keywordText = entry.keywords.join(" ");
-      const score = similarity(query, keywordText);
-
-      if (score > 0) {
-        results.push({ ...entry, score });
-      }
-    } catch {
-      agent.warningMessage(`Failed to parse index line: ${line}`);
-    }
-  }
-
-  results.sort((a, b) => b.score - a.score);
-  const topResults = results.slice(0, limit);
-
-  agent.infoMessage(`[${name}] Found ${results.length} matches, returning top ${topResults.length}`);
+  agent.infoMessage(`[${name}] Returning ${topResults.length} image matches`);
 
   return JSON.stringify({
     results: topResults.map(r => ({
       filename: r.filename,
-      path: `${targetDir}/${r.filename}`,
+      path: r.path,
       score: r.score,
       mimeType: r.mimeType,
       width: r.width,

@@ -1,20 +1,20 @@
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
 import { z } from "zod";
-import ImageGenerationService from "../ImageGenerationService.ts";
+import ImageService from "../ImageService.ts";
 
 const name = "image_generate";
 const displayName = "Image Generation/generateImage";
 
 async function execute(args: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const imageService = agent.requireServiceByType(ImageGenerationService);
+  const imageService = agent.requireServiceByType(ImageService);
 
   const result = await imageService.generateImage(args, agent);
 
   return JSON.stringify({ path: result.filePath });
 }
 
-const description = "Generate an AI image and save it to a configured output directory";
+const description = "Generate an AI image and save it to the shared media library";
 
 const inputSchema = z.object({
   prompt: z.string().describe("Description of the image to generate"),

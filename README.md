@@ -1,29 +1,29 @@
-# @tokenring-ai/image-generation
+# @tokenring-ai/image
 
-AI-powered image generation service with configurable output directories, EXIF metadata support, and local image search capabilities.
+AI-powered image generation and editing backed by the shared media library, with EXIF metadata support and local image search capabilities.
 
 ## Overview
 
-This package provides AI-powered image generation capabilities for the Token Ring ecosystem. It integrates with the agent system to generate images based on prompts, save them with metadata, and search through generated images using keyword similarity.
+This package provides AI-powered image generation capabilities for the Token Ring ecosystem. It integrates with the agent system to generate images based on prompts and stores generated media through `@tokenring-ai/media-library`.
 
 ## Key Features
 
 - **AI Image Generation**: Generate images using configurable AI models (DALL-E 3, etc.)
 - **EXIF Metadata**: Add keywords and descriptions to image metadata using exiftool-vendored
 - **Local Image Search**: Search through generated images by keyword similarity
-- **Automatic Indexing**: Maintain an index of generated images with metadata (dimensions, keywords, MIME type)
-- **Directory Management**: Configurable output directories for image storage
+- **Automatic Indexing**: Uses the media library index for generated images with metadata (dimensions, keywords, MIME type)
+- **Shared Media Storage**: Uses `@tokenring-ai/media-library` for output directories and static serving
 - **Aspect Ratio Support**: Generate images in square (1024x1024), tall (1024x1536), or wide (1536x1024) formats
 - **Model Flexibility**: Support for multiple AI image generation models through the model registry
 - **Keyword-Based Similarity Search**: Implements custom similarity algorithm matching keywords from image metadata
 - **RPC Endpoints**: HTTP API for image generation and retrieval
-- **Web Host Integration**: Static file serving for generated media at `/api/media`
+- **Web Host Integration**: Static file serving is provided by `@tokenring-ai/media-library`
 - **Image Adjustment**: Convert formats, scale, and adjust brightness of existing images
 
 ## Installation
 
 ```bash
-bun add @tokenring-ai/image-generation
+bun add @tokenring-ai/image
 ```
 
 ## Plugin Configuration
@@ -35,7 +35,11 @@ imageGeneration:
   defaultModels:
     - openai:dall-e-3
   agentDefaults:
-    outputDirectory: "./images/generated"
+    model: openai:dall-e-3
+
+mediaLibrary:
+  agentDefaults:
+    outputDirectory: "./media/generated"
 ```
 
 ### Configuration Schema
@@ -43,14 +47,13 @@ imageGeneration:
 The plugin uses the following configuration schema:
 
 ```typescript
-import { ImageGenerationServiceConfigSchema } from "@tokenring-ai/image-generation";
+import { ImageServiceConfigSchema } from "@tokenring-ai/image";
 
 // Schema structure
-ImageGenerationServiceConfigSchema = z.object({
+ImageServiceConfigSchema = z.object({
   defaultModels: z.array(z.string()).default([]),
   agentDefaults: z.object({
     model: z.string().exactOptional(),
-    outputDirectory: z.string(),
   }),
 });
 ```
@@ -60,7 +63,6 @@ ImageGenerationServiceConfigSchema = z.object({
 | Field                           | Type       | Required | Description                                                                |
 |---------------------------------|------------|----------|----------------------------------------------------------------------------|
 | `defaultModels`                 | `string[]` | No       | List of model names to try for default selection (first available is used) |
-| `agentDefaults.outputDirectory` | `string`   | Yes      | Base directory for storing generated images                                |
 | `agentDefaults.model`           | `string`   | No       | Default image generation model for agents                                  |
 
 ## Chat Commands
@@ -367,7 +369,7 @@ console.log(result);
 
 ## RPC Endpoints
 
-The package exposes an RPC endpoint at `/rpc/image-generation` with the following methods:
+The package exposes an RPC endpoint at `/rpc/image` with the following methods:
 
 ### getImages
 
@@ -468,11 +470,11 @@ console.log(result);
 
 ## Core Components
 
-### ImageGenerationService
+### ImageService
 
 Main service managing image generation and indexing functionality.
 
-**Service Name:** `ImageGenerationService`
+**Service Name:** `ImageService`
 
 **Description:** Image generation with configurable output directories
 
@@ -775,10 +777,10 @@ const adjustResult = await agent.useTool("image_adjust", {
 ## Package Structure
 
 ```text
-pkg/image-generation/
-├── index.ts                         # Package exports (ImageGenerationService)
+pkg/image/
+├── index.ts                         # Package exports (ImageService)
 ├── plugin.ts                        # Plugin integration logic and configuration
-├── ImageGenerationService.ts        # Core service implementation
+├── ImageService.ts        # Core service implementation
 ├── schema.ts                        # Configuration and state schemas
 ├── tools.ts                         # Tool exports
 ├── tools/
@@ -808,10 +810,10 @@ pkg/image-generation/
 
 The package registers the following services:
 
-1. **ImageGenerationService**: Core image generation and indexing functionality
+1. **ImageService**: Core image generation and indexing functionality
 2. **ChatService**: Registers tools for image generation, search, and adjustment
 3. **AgentCommandService**: Registers `/image` commands
-4. **RpcService**: Registers `/rpc/image-generation` endpoint
+4. **RpcService**: Registers `/rpc/image` endpoint
 5. **WebHostService**: Registers `/api/media` static file serving
 
 ### Tool Registration

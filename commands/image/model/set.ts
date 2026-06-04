@@ -1,6 +1,6 @@
 import { CommandFailedError } from "@tokenring-ai/agent/AgentError";
 import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
-import ImageGenerationService from "../../../ImageGenerationService.ts";
+import ImageService from "../../../ImageService.ts";
 
 const inputSchema = {
   args: {},
@@ -16,7 +16,7 @@ const inputSchema = {
 function execute({ positionals, agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
   const modelName = positionals.modelName;
   if (!modelName) throw new CommandFailedError("Model name required. Usage: /image model set <model_name>");
-  agent.requireServiceByType(ImageGenerationService).setModel(modelName, agent);
+  agent.requireServiceByType(ImageService).setModel(modelName, agent);
   return Promise.resolve(`Image model set to ${modelName}`);
 }
 
