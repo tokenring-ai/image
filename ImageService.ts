@@ -43,15 +43,14 @@ export default class ImageService implements TokenRingService {
   constructor(
     private app: TokenRingApp,
     private options: ParsedImageGenerationConfig,
-  ) {
-  }
+  ) {}
 
   start() {
     const imageModelRegistry = this.app.requireService(ImageGenerationModelRegistry);
 
     for (const modelName of this.options.defaultModels) {
       const foundModels = Object.keys(imageModelRegistry.getModelSpecsByRequirements(modelName));
-      if (foundModels.length > 0) {
+      if (foundModels?.[0]) {
         this.defaultModel = foundModels[0];
         break;
       }
@@ -253,9 +252,8 @@ export default class ImageService implements TokenRingService {
         encoded = pipeline.png();
         break;
       default:
-        // noinspection UnnecessaryLocalVariableJS
-        const unsupportedFormat: never = outputFormat;
-        throw new Error(`Unsupported output format: ${unsupportedFormat as string}`);
+        const exhaustive: any = outputFormat satisfies never;
+        throw new Error(`Unsupported output format: ${exhaustive}`);
     }
 
     const bytes = await encoded.bytes();

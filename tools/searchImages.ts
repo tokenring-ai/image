@@ -6,7 +6,7 @@ import { z } from "zod";
 const name = "image_search";
 const displayName = "Image Generation/searchImages";
 
-async function execute({ query, limit  }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
+async function execute({ query, limit }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const mediaLibrary = agent.requireServiceByType(MediaLibraryService);
   const topResults = await mediaLibrary.search(query, { kind: "image", limit }, agent);
 
