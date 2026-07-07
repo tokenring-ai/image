@@ -1,14 +1,15 @@
+import { Buffer } from "node:buffer";
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { AgentCreationContext } from "@tokenring-ai/agent/types";
 import type { ImageRequest } from "@tokenring-ai/ai-client/client/AIImageGenerationClient";
 import { ImageGenerationModelRegistry } from "@tokenring-ai/ai-client/ModelRegistry";
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
+import { ConfigurationError } from "@tokenring-ai/app/types";
 import FileSystemService from "@tokenring-ai/filesystem/FileSystemService";
 import MediaLibraryService from "@tokenring-ai/media-library/MediaLibraryService";
 import deepClone from "@tokenring-ai/utility/object/deepClone";
 import { exiftool } from "exiftool-vendored";
-import { Buffer } from "node:buffer";
 import { ImageGenerationAgentConfigSchema, type ParsedImageGenerationConfig } from "./schema.ts";
 import { ImageState } from "./state/ImageState.ts";
 
@@ -18,7 +19,7 @@ export type GenerateImageOptions = Omit<ImageRequest, "size" | "aspectRatio" | "
   keywords?: string[] | undefined;
 };
 
-export type AdjustImageFormat = "jpeg" | "png" | "webp";
+export type AdjustImageFormat = "jpeg" | "png" | "webp" | "avif" | "heic";
 
 export type AdjustImageOptions = {
   source: string;
@@ -32,6 +33,8 @@ const FORMAT_INFO: Record<AdjustImageFormat, { mediaType: string; extension: str
   jpeg: { mediaType: "image/jpeg", extension: "jpg" },
   png: { mediaType: "image/png", extension: "png" },
   webp: { mediaType: "image/webp", extension: "webp" },
+  avif: { mediaType: "image/avif", extension: "avif" },
+  heic: { mediaType: "image/heic", extension: "heic" },
 };
 
 export default class ImageService implements TokenRingService {
@@ -50,7 +53,7 @@ export default class ImageService implements TokenRingService {
 
     for (const modelName of this.options.defaultModels) {
       const foundModels = Object.keys(imageModelRegistry.getModelSpecsByRequirements(modelName));
-      if (foundModels?.[0]) {
+      if (foundModels[0]) {
         this.defaultModel = foundModels[0];
         break;
       }
@@ -95,7 +98,7 @@ export default class ImageService implements TokenRingService {
 
   requireModel(agent: Agent): string {
     const model = this.getModel(agent);
-    if (!model) throw new Error("No image generation model is currently selected");
+    if (!model) throw new ConfigurationError(this.name, "No image generation model is currently selected");
     return model;
   }
 
@@ -202,10 +205,6 @@ export default class ImageService implements TokenRingService {
     const fileSystem = agent.requireServiceByType(FileSystemService);
     const mediaLibrary = agent.requireServiceByType(MediaLibraryService);
 
-    if (!source) {
-      throw new Error("Source path is required");
-    }
-
     const targetDir = this.getOutputDirectory(agent);
     const sourcePath = source.includes("/") ? source : `${targetDir}/${source}`;
 
@@ -234,13 +233,9 @@ export default class ImageService implements TokenRingService {
       pipeline = pipeline.modulate({ brightness });
     }
 
-    const outputFormat: AdjustImageFormat = format ?? (sourceMetadata.format as AdjustImageFormat) ?? "jpeg";
-    const formatInfo = FORMAT_INFO[outputFormat];
-    if (!formatInfo) {
-      throw new Error(`Unsupported output format: ${outputFormat}`);
-    }
+    const outputFormat = format ?? sourceMetadata.format;
 
-    let encoded;
+    let encoded: Bun.Image;
     switch (outputFormat) {
       case "jpeg":
         encoded = quality !== undefined ? pipeline.jpeg({ quality }) : pipeline.jpeg();
@@ -251,10 +246,25 @@ export default class ImageService implements TokenRingService {
       case "png":
         encoded = pipeline.png();
         break;
-      default:
+      case "avif":
+        encoded = quality !== undefined ? pipeline.avif({ quality }) : pipeline.avif();
+        break;
+      case "heic":
+        encoded = quality !== undefined ? pipeline.heic({ quality }) : pipeline.heic();
+        break;
+      case "bmp":
+        throw new Error("BMP output not supported");
+      case "gif":
+        throw new Error("GIF output not supported");
+      case "tiff":
+        throw new Error("TIFF output not supported");
+      default: {
         const exhaustive: any = outputFormat satisfies never;
         throw new Error(`Unsupported output format: ${exhaustive}`);
+      }
     }
+
+    const formatInfo = FORMAT_INFO[outputFormat];
 
     const bytes = await encoded.bytes();
     const outputBuffer = Buffer.from(bytes);
