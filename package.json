@@ -11,7 +11,7 @@
     "@tokenring-ai/media-library": "workspace:*",
     "@tokenring-ai/rpc": "workspace:*",
     "@tokenring-ai/utility": "workspace:*",
-    "exiftool-vendored": "^36.0.0",
+    "exiftool-vendored": "^36.1.0",
     "zod": "^4.4.3"
   },
   "exports": {
@@ -21,7 +21,7 @@
   "license": "MIT",
   "type": "module",
   "devDependencies": {
-    "typescript": "^6.0.2"
+    "typescript": "^7.0.2"
   },
   "scripts": {
     "test": "bun test",
