@@ -801,7 +801,6 @@ pkg/image/
 ├── state/
 │   └── ImageGenerationState.ts      # Agent state slice for image settings
 ├── package.json                     # Package metadata
-└── vitest.config.ts                 # Test configuration
 ```
 
 ## Integration
@@ -883,7 +882,7 @@ The package includes comprehensive error handling:
 
 ### Development Dependencies
 
-- `vitest` (^4.1.1) - Testing framework
+- `bun test` - Testing framework
 - `typescript` (^6.0.2) - TypeScript compiler
 
 ## Testing
