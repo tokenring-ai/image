@@ -11,13 +11,16 @@ async function execute(args: z.output<typeof inputSchema>, agent: Agent): Promis
 
   const result = await imageService.adjustImage(args, agent);
 
-  return JSON.stringify({
-    path: result.filePath,
-    fileName: result.fileName,
-    mediaType: result.mediaType,
-    width: result.width,
-    height: result.height,
-  });
+  return {
+    message: `**Image** Adjusted image ${args.source}`,
+    result: JSON.stringify({
+      path: result.filePath,
+      fileName: result.fileName,
+      mediaType: result.mediaType,
+      width: result.width,
+      height: result.height,
+    }),
+  };
 }
 
 const description =

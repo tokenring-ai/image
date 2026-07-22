@@ -11,7 +11,10 @@ async function execute(args: z.output<typeof inputSchema>, agent: Agent): Promis
 
   const result = await imageService.generateImage(args, agent);
 
-  return JSON.stringify({ path: result.filePath });
+  return {
+    message: `**Image** Generated image ${result.filePath}`,
+    result: JSON.stringify({ path: result.filePath }),
+  };
 }
 
 const description = "Generate an AI image and save it to the shared media library";

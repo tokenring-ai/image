@@ -67,23 +67,23 @@ export default class ImageService implements TokenRingService {
   }
 
   attach(agent: Agent, creationContext: AgentCreationContext): void {
-    const agentConfig = deepClone(this.options.agentDefaults, agent.getAgentConfigSlice("imageGeneration", ImageGenerationAgentConfigSchema));
-    const initialState = agent.initializeState(ImageState, agentConfig);
+    const { model = this.defaultModel, ...agentConfig } = deepClone(
+      this.options.agentDefaults,
+      agent.getAgentConfigSlice("imageGeneration", ImageGenerationAgentConfigSchema),
+    );
 
-    const selectedModel = initialState.model ?? this.defaultModel;
-    creationContext.items.push(`Image Generation Model: ${selectedModel ?? "No model selected"}`);
-  }
+    agent.initializeState(ImageState, {
+      ...agentConfig,
+      ...(model && {
+        model,
+      }),
+    });
 
-  getDefaultOutputDirectory(): string {
-    return this.app.requireService(MediaLibraryService).getDefaultOutputDirectory();
+    creationContext.items.push(`Image Generation Model: ${model ?? "No model selected"}`);
   }
 
   getOutputDirectory(agent: Agent): string {
     return agent.requireServiceByType(MediaLibraryService).getOutputDirectory(agent);
-  }
-
-  getDefaultModel(): string | null {
-    return this.defaultModel;
   }
 
   getModel(agent: Agent): string | null {
@@ -178,8 +178,6 @@ export default class ImageService implements TokenRingService {
     } catch (error: unknown) {
       agent.warningMessage(`[${this.name}] Failed to write EXIF data:`, error as Error);
     }
-
-    agent.infoMessage(`[${this.name}] Image saved: ${media.filePath}`);
 
     return {
       mediaType: imageResult.mediaType,
