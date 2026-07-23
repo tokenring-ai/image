@@ -18,22 +18,11 @@ export default createRPCEndpoint(ImageGenerationRpcSchema, {
     }
 
     try {
-      const result = await imageService.generateImage(
-        {
-          prompt: args.prompt,
-          aspectRatio: args.aspectRatio,
-          keywords: args.keywords,
-        },
-        agent,
-      );
+      const result = await imageService.generateImage(args.request, agent);
 
       return {
         status: "success" as const,
-        filename: result.fileName,
-        width: result.width,
-        height: result.height,
-        mimeType: result.mediaType,
-        message: `Generated: ${result.fileName}`,
+        results: [result],
       };
     } finally {
       if (args.model) {

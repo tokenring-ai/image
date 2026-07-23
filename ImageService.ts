@@ -1,7 +1,6 @@
 import { Buffer } from "node:buffer";
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { AgentCreationContext } from "@tokenring-ai/agent/types";
-import type { ImageRequest } from "@tokenring-ai/ai-client/client/AIImageGenerationClient";
 import { ImageGenerationModelRegistry } from "@tokenring-ai/ai-client/ModelRegistry";
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
@@ -10,24 +9,9 @@ import FileSystemService from "@tokenring-ai/filesystem/FileSystemService";
 import MediaLibraryService from "@tokenring-ai/media-library/MediaLibraryService";
 import deepClone from "@tokenring-ai/utility/object/deepClone";
 import { exiftool } from "exiftool-vendored";
+import type { AdjustImageFormat, AdjustImageOptions, GenerateImageOptions } from "./schema.ts";
 import { ImageGenerationAgentConfigSchema, type ParsedImageGenerationConfig } from "./schema.ts";
 import { ImageState } from "./state/ImageState.ts";
-
-export type GenerateImageOptions = Omit<ImageRequest, "size" | "aspectRatio" | "prompt"> & {
-  prompt: string;
-  aspectRatio?: "square" | "tall" | "wide" | undefined;
-  keywords?: string[] | undefined;
-};
-
-export type AdjustImageFormat = "jpeg" | "png" | "webp" | "avif" | "heic";
-
-export type AdjustImageOptions = {
-  source: string;
-  format?: AdjustImageFormat | undefined;
-  scale?: number | undefined;
-  brightness?: number | undefined;
-  quality?: number | undefined;
-};
 
 const FORMAT_INFO: Record<AdjustImageFormat, { mediaType: string; extension: string }> = {
   jpeg: { mediaType: "image/jpeg", extension: "jpg" },
@@ -107,14 +91,14 @@ export default class ImageService implements TokenRingService {
   }
 
   async generateImage(
-    { prompt, aspectRatio = "square", keywords }: GenerateImageOptions,
+    { keywords, ...request }: GenerateImageOptions,
     agent: Agent,
   ): Promise<{
     mediaType: string;
     fileName: string;
     filePath: string;
-    width: number;
-    height: number;
+    width?: number;
+    height?: number;
     buffer: Buffer;
   }> {
     const imageModelRegistry = agent.requireServiceByType(ImageGenerationModelRegistry);
@@ -122,35 +106,13 @@ export default class ImageService implements TokenRingService {
 
     const model = this.requireModel(agent);
 
-    agent.infoMessage(`[${this.name}] Generating image: "${prompt}"`);
+    agent.infoMessage(`[${this.name}] Generating image: "${request.prompt}"`);
 
     const imageClient = imageModelRegistry.getClient(model);
 
-    let size: `${number}x${number}`;
-    let width: number, height: number;
-    switch (aspectRatio) {
-      case "square":
-        size = "1024x1024";
-        width = 1024;
-        height = 1024;
-        break;
-      case "tall":
-        size = "1024x1536";
-        width = 1024;
-        height = 1536;
-        break;
-      case "wide":
-        size = "1536x1024";
-        width = 1536;
-        height = 1024;
-        break;
-      default:
-        size = "1024x1024";
-        width = 1024;
-        height = 1024;
-    }
+    const widthAndHeight = imageClient.determineBestSize(request.sizing);
 
-    const [imageResult] = await imageClient.generateImage({ prompt, size, n: 1 }, agent);
+    const [imageResult] = await imageClient.generateImage({ widthAndHeight, ...request }, agent);
 
     const imageBuffer = Buffer.from(imageResult.uint8Array);
     const media = await mediaLibrary.writeMedia(
@@ -158,10 +120,9 @@ export default class ImageService implements TokenRingService {
         kind: "image",
         buffer: imageBuffer,
         mimeType: imageResult.mediaType,
-        width,
-        height,
+        ...widthAndHeight,
         keywords: keywords ?? [],
-        prompt,
+        prompt: request.prompt,
       },
       agent,
     );
@@ -170,7 +131,7 @@ export default class ImageService implements TokenRingService {
     if (keywords && keywords.length > 0) {
       exifData.Keywords = keywords;
     }
-    exifData.ImageDescription = prompt;
+    exifData.ImageDescription = request.prompt;
 
     try {
       await exiftool.write(media.filePath, exifData);
@@ -184,8 +145,7 @@ export default class ImageService implements TokenRingService {
       buffer: imageBuffer,
       fileName: media.filename,
       filePath: media.filePath,
-      width,
-      height,
+      ...widthAndHeight,
     };
   }
 

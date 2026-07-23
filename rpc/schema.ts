@@ -2,6 +2,8 @@ import type { RPCSchema } from "@tokenring-ai/rpc/types";
 import { AgentNotFoundSchema, SuccessSchema } from "@tokenring-ai/rpc/types";
 import { z } from "zod";
 
+import { GenerateImageOptionsSchema } from "../schema.ts";
+
 export default {
   name: "Image Generation RPC",
   path: "/rpc/image",
@@ -10,18 +12,19 @@ export default {
       type: "mutation",
       input: z.object({
         agentId: z.string(),
-        prompt: z.string(),
         model: z.string().exactOptional(),
-        aspectRatio: z.enum(["square", "tall", "wide"]).default("square").exactOptional(),
-        keywords: z.array(z.string()).exactOptional(),
+        request: GenerateImageOptionsSchema,
       }),
       result: z.discriminatedUnion("status", [
         SuccessSchema.extend({
-          filename: z.string(),
-          width: z.number(),
-          height: z.number(),
-          mimeType: z.string(),
-          message: z.string(),
+          results: z.array(
+            z.object({
+              fileName: z.string(),
+              width: z.number().exactOptional(),
+              height: z.number().exactOptional(),
+              mediaType: z.string(),
+            }),
+          ),
         }),
         AgentNotFoundSchema,
       ]),

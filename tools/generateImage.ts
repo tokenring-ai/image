@@ -9,7 +9,19 @@ const displayName = "Image Generation/generateImage";
 async function execute(args: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const imageService = agent.requireServiceByType(ImageService);
 
-  const result = await imageService.generateImage(args, agent);
+  const { quality, shape, ...extra } = args;
+
+  const result = await imageService.generateImage(
+    {
+      ...extra,
+      sizing: {
+        method: "guided",
+        quality,
+        shape
+      },
+    },
+    agent,
+  );
 
   return {
     message: `**Image** Generated image ${result.filePath}`,
@@ -21,7 +33,8 @@ const description = "Generate an AI image and save it to the shared media librar
 
 const inputSchema = z.object({
   prompt: z.string().describe("Description of the image to generate"),
-  aspectRatio: z.enum(["square", "tall", "wide"]).default("square"),
+  quality: z.enum(["ultra", "high", "standard", "low"]).describe("Quality of the generated image"),
+  shape: z.enum(["square", "landscape", "portrait", "ultrawide", "ultratall"]).describe("Shape of the generated image"),
   keywords: z.array(z.string()).describe("Keywords to add to image EXIF/IPTC metadata").exactOptional(),
 });
 
