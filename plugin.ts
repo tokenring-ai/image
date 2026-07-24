@@ -27,5 +27,5 @@ export default {
       rpcService.registerEndpoint(imageGenerationRPC);
     });
   },
-  config: packageConfigSchema,
+  configSchema: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;
