@@ -17,7 +17,7 @@ async function execute(args: z.output<typeof inputSchema>, agent: Agent): Promis
       sizing: {
         method: "guided",
         quality,
-        shape
+        shape,
       },
     },
     agent,
