@@ -17,6 +17,7 @@ export const ImageServiceConfigSchema = z
       .default({})
       .meta({ label: "Agent Defaults" }),
   })
+  .prefault({})
   .meta({ label: "Image Generation" });
 
 export type ImageServiceConfig = z.input<typeof ImageServiceConfigSchema>;

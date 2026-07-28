@@ -10,7 +10,7 @@ import MediaLibraryService from "@tokenring-ai/media-library/MediaLibraryService
 import deepClone from "@tokenring-ai/utility/object/deepClone";
 import { exiftool } from "exiftool-vendored";
 import type { AdjustImageFormat, AdjustImageOptions, GenerateImageOptions } from "./schema.ts";
-import { ImageGenerationAgentConfigSchema, type ParsedImageGenerationConfig } from "./schema.ts";
+import { ImageGenerationAgentConfigSchema, ImageServiceConfigSchema, type ParsedImageGenerationConfig } from "./schema.ts";
 import { ImageState } from "./state/ImageState.ts";
 
 const FORMAT_INFO: Record<AdjustImageFormat, { mediaType: string; extension: string }> = {
@@ -26,11 +26,18 @@ export default class ImageService implements TokenRingService {
   description = "Image generation and editing backed by the shared media library";
 
   defaultModel: string | null = null;
+  private options = ImageServiceConfigSchema.parse({});
 
   constructor(
     private app: TokenRingApp,
-    private options: ParsedImageGenerationConfig,
-  ) {}
+    options?: ParsedImageGenerationConfig,
+  ) {
+    if (options) this.options = options;
+  }
+
+  reconfigure(options: ParsedImageGenerationConfig): void {
+    this.options = options;
+  }
 
   start() {
     const imageModelRegistry = this.app.requireService(ImageGenerationModelRegistry);

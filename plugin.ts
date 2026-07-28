@@ -19,13 +19,16 @@ export default {
   displayName: "Image Generation",
   version: packageJSON.version,
   description: packageJSON.description,
-  install(app, config) {
-    app.addServices(new ImageService(app, config.imageGeneration));
+  install(app) {
+    app.addServices(new ImageService(app));
     app.waitForService(ChatService, chatService => chatService.addTools(...tools));
     app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands(agentCommands));
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(imageGenerationRPC);
     });
+  },
+  reconfigure(app, config) {
+    app.requireService(ImageService).reconfigure(config.imageGeneration);
   },
   configSchema: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;
