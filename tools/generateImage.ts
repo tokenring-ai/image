@@ -7,7 +7,7 @@ const name = "image_generate";
 const displayName = "Image Generation/generateImage";
 
 async function execute(args: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const imageService = agent.requireServiceByType(ImageService);
+  const imageService = agent.requireService(ImageService);
 
   const { quality, shape, ...extra } = args;
 

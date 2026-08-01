@@ -20,8 +20,8 @@ export default {
   version: packageJSON.version,
   description: packageJSON.description,
   install(app) {
-    app.addServices(new ImageService(app));
-    app.waitForService(ChatService, chatService => chatService.addTools(...tools));
+    app.addService(new ImageService(app));
+    app.waitForService(ChatService, chatService => chatService.addTools(tools));
     app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands(agentCommands));
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(imageGenerationRPC);

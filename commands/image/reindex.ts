@@ -4,7 +4,7 @@ import ImageService from "../../ImageService.ts";
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 async function execute({ agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
-  const imageService = agent.requireServiceByType(ImageService);
+  const imageService = agent.requireService(ImageService);
   await imageService.reindex(agent);
   return "Image media re-indexed successfully.";
 }

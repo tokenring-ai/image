@@ -4,7 +4,7 @@ import ImageService from "../../../ImageService.ts";
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 function execute({ agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
-  return Promise.resolve(`Current image model: ${agent.requireServiceByType(ImageService).getModel(agent) ?? "(none)"}`);
+  return Promise.resolve(`Current image model: ${agent.requireService(ImageService).getModel(agent) ?? "(none)"}`);
 }
 
 export default {

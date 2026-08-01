@@ -8,7 +8,7 @@ const inputSchema = {} as const satisfies AgentCommandInputSchema;
 function execute({ agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
   const initialModel = agent.getState(ImageState).initialConfig.model;
   if (!initialModel) throw new CommandFailedError("No initial image model configured");
-  agent.requireServiceByType(ImageService).setModel(initialModel, agent);
+  agent.requireService(ImageService).setModel(initialModel, agent);
   return Promise.resolve(`Image model reset to ${initialModel}`);
 }
 

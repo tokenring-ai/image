@@ -7,7 +7,7 @@ const name = "image_adjust";
 const displayName = "Image Generation/adjustImage";
 
 async function execute(args: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const imageService = agent.requireServiceByType(ImageService);
+  const imageService = agent.requireService(ImageService);
 
   const result = await imageService.adjustImage(args, agent);
 

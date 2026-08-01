@@ -13,10 +13,10 @@ const inputSchema = {
   ],
 } as const satisfies AgentCommandInputSchema;
 
-function execute({ positionals, agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
-  const modelName = positionals.modelName;
+function execute({ args, agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
+  const modelName = args.modelName;
   if (!modelName) throw new CommandFailedError("Model name required. Usage: /image model set <model_name>");
-  agent.requireServiceByType(ImageService).setModel(modelName, agent);
+  agent.requireService(ImageService).setModel(modelName, agent);
   return Promise.resolve(`Image model set to ${modelName}`);
 }
 

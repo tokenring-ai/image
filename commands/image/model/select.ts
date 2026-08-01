@@ -6,8 +6,8 @@ import ImageService from "../../../ImageService.ts";
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 async function execute({ agent }: AgentCommandInputType<typeof inputSchema>): Promise<string> {
-  const registry = agent.requireServiceByType(ImageGenerationModelRegistry);
-  const imageService = agent.requireServiceByType(ImageService);
+  const registry = agent.requireService(ImageGenerationModelRegistry);
+  const imageService = agent.requireService(ImageService);
   const modelsByProvider = await agent.busyWithActivity("Checking online status of models...", registry.getModelsByProvider());
   const tree: TreeLeaf[] = Object.entries(modelsByProvider)
     .sort(([a], [b]) => a.localeCompare(b))

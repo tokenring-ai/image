@@ -74,7 +74,7 @@ export default class ImageService implements TokenRingService {
   }
 
   getOutputDirectory(agent: Agent): string {
-    return agent.requireServiceByType(MediaLibraryService).getOutputDirectory(agent);
+    return agent.requireService(MediaLibraryService).getOutputDirectory(agent);
   }
 
   getModel(agent: Agent): string | null {
@@ -94,7 +94,7 @@ export default class ImageService implements TokenRingService {
   }
 
   async reindex(agent: Agent): Promise<void> {
-    await agent.requireServiceByType(MediaLibraryService).reindex(agent, ["image"]);
+    await agent.requireService(MediaLibraryService).reindex(agent, ["image"]);
   }
 
   async generateImage(
@@ -108,8 +108,8 @@ export default class ImageService implements TokenRingService {
     height?: number;
     buffer: Buffer;
   }> {
-    const imageModelRegistry = agent.requireServiceByType(ImageGenerationModelRegistry);
-    const mediaLibrary = agent.requireServiceByType(MediaLibraryService);
+    const imageModelRegistry = agent.requireService(ImageGenerationModelRegistry);
+    const mediaLibrary = agent.requireService(MediaLibraryService);
 
     const model = this.requireModel(agent);
 
@@ -167,8 +167,8 @@ export default class ImageService implements TokenRingService {
     height: number;
     buffer: Buffer;
   }> {
-    const fileSystem = agent.requireServiceByType(FileSystemService);
-    const mediaLibrary = agent.requireServiceByType(MediaLibraryService);
+    const fileSystem = agent.requireService(FileSystemService);
+    const mediaLibrary = agent.requireService(MediaLibraryService);
 
     const targetDir = this.getOutputDirectory(agent);
     const sourcePath = source.includes("/") ? source : `${targetDir}/${source}`;
