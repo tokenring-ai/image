@@ -74,7 +74,7 @@ export default class ImageService implements TokenRingService {
   }
 
   getOutputDirectory(agent: Agent): string {
-    return agent.requireService(MediaLibraryService).getOutputDirectory(agent);
+    return agent.requireService(MediaLibraryService).getOutputDirectory();
   }
 
   getModel(agent: Agent): string | null {

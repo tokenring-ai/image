@@ -365,7 +365,7 @@ constructor(
 
 #### getOutputDirectory(agent)
 
-Get the output directory for a specific agent from the media library service.
+Get the media library output directory (workspace/plugin level) via MediaLibraryService.
 
 ```typescript
 getOutputDirectory(agent: Agent): string
@@ -373,9 +373,9 @@ getOutputDirectory(agent: Agent): string
 
 **Parameters:**
 
-- `agent`: Agent instance
+- `agent`: Agent instance (used to resolve MediaLibraryService)
 
-**Returns:** The agent's output directory path
+**Returns:** The configured media library directory path
 
 #### getModel(agent)
 
